@@ -1,7 +1,7 @@
 # Sudoku-Generator
 Possibly the fastest Sudoku Generator available as it hits 1000 grids generated in 2.5 seconds on outdated hardware (2017 laptop) in a Windows environment with system interrupts, task scheduling, and no dedicated threading. The benchmark was performed with O2 optimizations, where fastest time generated is 54µs.
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Not a seasoned C++ developer, so this needs those who know how to optimize this implementation of the algorithm, and perform the appropriate benchmark tests for the generator. There are currently 2 generation methods that post similar times for the current architecture: Intel Core i5 Windows laptop with 4 cores. Inexperience led to no appropriate data type translations for optimal speed, so the speed is coming purely from the algorithm itself. 
 
@@ -9,4 +9,6 @@ AI assisted in the construction of the code, so inefficiencies may be present fr
 
 I have a final propagation algorithm provided with only the necessary initializations in place. I'm willing to work with others on building that one, as it could be several times faster than the first 2 algorithms, given that it uses predetermined placements. I intend to add variety by applying a random set of transforms after completion of this last algorithm: the transforms are supplied in the code with example usage in the main file.
 
-Contributors should try to extend this in C++, but if you find out how to rebuild it in another language, feel free to publish that version independently: C# Java, Jqeury, etc.
+Contributors should try to extend this in C++, but if you find out how to rebuild it in another language, feel free to publish that version independently: C#, Java, Jqeury, etc.
+
+If someone can attach a puzzle builder to this that would be good, I'd like to see how it performs with puzzle generation included. There's a field generated from the constructors that provides a flattened view of the grid, so you can use that to plug into a puzzle builder or solver.
