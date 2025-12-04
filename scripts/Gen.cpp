@@ -18,9 +18,20 @@ static std::string as_percent(double value, int decimals = 1) {
   return oss.str();
 }
 
-static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av){
+static bool isTransform(const std::string& m) {
+  static const std::unordered_set<std::string> aliases = {
+    "transform", "xform", "tf", "t"
+  };
+
+  return aliases.find(m) != aliases.end();
+}
+
+static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av, std::string m = "default") {
   double _td = double (td) / 1000;
   std::ostringstream oss;
+
+  oss << "Mode: " << ((isTransform(m)) ? "Transform" : "Default");
+  oss << '\n' << std::endl;
   oss << "Total Puzzles: " << t;
   oss << " | ";
   oss << "Valid: " << sc;
@@ -32,15 +43,8 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   oss << "Total Duration: " << std::fixed << std::setprecision(2) << ((td > 1000) ? _td : td) << ((td > 1000) ? " seconds" : " milliseconds");
   oss << " | ";
   oss << "Average: " << std::fixed << std::setprecision(2) << av << " milliseconds" << std::endl;
+
   return oss.str();
-}
-
-static bool isTransform(const std::string& m) {
-  static const std::unordered_set<std::string> aliases = {
-    "transform", "xform", "tf", "t"
-  };
-
-  return aliases.find(m) != aliases.end();
 }
 
 int main(int argc, char* argv[]) {
@@ -184,6 +188,6 @@ int main(int argc, char* argv[]) {
 
   double successRate = (total > 0) ? double(successCount) / double(total) : 0.0;
   std::cout << std::endl;
-  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average);
+  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average, mode);
   
 }
