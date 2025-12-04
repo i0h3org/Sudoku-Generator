@@ -7,7 +7,7 @@ The peak completion times in both spectrums are 54µs and 60ms. The variance is 
 
 It possesses the full suite of transforms, allowing 100,000 puzzles generated in the same time with all transforms applied. The objective is for this to become the fastest known grid generator, that can be used as the engine for solvers and puzzle generators. It inherently supports mask overlays to handle variants like Hyper Sudoku, Killer Sudoku, Diagonal/X Sudoku, Irregular Sudoku, all of which are not implemented currently. Samurai and Multi Sudoku is supported. The mask overlays can be accomplished in a manner similar to the Phistemofel mask produced from the Phistemofel function.
 
-I believe it can generate a few several 100,000 in a second with transforms on modern hardware if optimized appropriately. 
+I believe it can generate a few hundred thousand (2-4) in a second with transforms on modern hardware if optimized appropriately. 
 
 Current architecture:
 
