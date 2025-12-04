@@ -1,5 +1,9 @@
 #include "Sudoku.h"
 
+#ifndef Sudoku_H
+  #error X0
+#endif
+
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -14,7 +18,7 @@ static std::string as_percent(double value, int decimals = 1) {
   return oss.str();
 }
 
-static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td){
+static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av){
   std::ostringstream oss;
   oss << "Total Puzzles: " << t;
   oss << " | ";
@@ -26,7 +30,7 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   oss << " | ";
   oss << "Total Duration: " << ((td > 1000) ? td / 1000 : td) << ((td > 1000) ? " seconds" : " milliseconds");
   oss << " | ";
-  oss << "Average: " << av << " milliseconds" << std::endl;
+  oss << "Average: " << std::fixed << std::setprecision(2) << av << " milliseconds" << std::endl;
   return oss.str();
 }
 
@@ -76,7 +80,6 @@ int main(int argc, char* argv[]) {
   }
 
   transform = isTransform(mode);
-  size_t transformCount = (count > 89) ? (count / 89) + 1 : 1;
 
   using clock = std::chrono::steady_clock;
   size_t successCount = 0;
@@ -84,7 +87,7 @@ int main(int argc, char* argv[]) {
   size_t total = 0;
 
   std::chrono::steady_clock::time_point trueStart = clock::now(), end;
-  for (size_t i = 0; i < (transform ? transformCount : count); i++) {
+  for (size_t i = 0; i < count; i++) {
     long long gridDuration;
     unsigned int tries = 0;
     size_t pos = size_t(i % 9), _pos = 8 - pos;
@@ -102,6 +105,8 @@ int main(int argc, char* argv[]) {
     if (s.validateGrid()) { successCount++; } else { failureCount++; }
     total = successCount + failureCount;
 
+    
+
     if (verbose) { 
       if (assured) {
         std::cout << '\n' << "Grid completion took: " << gridDuration << " microseconds in " << tries << " tries" << std::endl;
@@ -117,6 +122,8 @@ int main(int argc, char* argv[]) {
     printGrid();
 
     if (!s.validateGrid()) continue;
+
+    if ((count - i) < 89) continue;
     
     if (transform) {
       for (int j = 0; j < 3; j++) {
@@ -124,8 +131,7 @@ int main(int argc, char* argv[]) {
           if ( (!j && !k) ) continue;
           s.torShift(j, k);
           printGrid();
-          successCount++; total++;
-          if (total >= count) break;
+          successCount++; i++;
         }
       }
 
@@ -135,48 +141,36 @@ int main(int argc, char* argv[]) {
         for (int k = 0; k < 3; k++) {
           for (int l = 0; l < 3; l++) {
             if (!(k == l)) {
-              s.bandSwap(k, l); successCount++; total++;
-              if (total >= count) break;
+              s.bandSwap(k, l); successCount++; i++;
               printGrid();
-            }
-            if (!(k == l)) {
-              s.stackSwap(k, l);successCount++; total++;
-              if (total >= count) break;
+
+              s.stackSwap(k, l);successCount++; i++;
               printGrid();
-            }
-            if (!(k == l)) {
-              s.bandRowSwap(j, k, l); successCount++; total++;
-              if (total >= count) break;
+
+              s.bandRowSwap(j, k, l); successCount++; i++;
               printGrid();
-            }
-            if (!(k == l)) {
-              s.stackColSwap(j, k, l); successCount++; total++;
-              if (total >= count) break;
+
+              s.stackColSwap(j, k, l); successCount++; i++;
               printGrid();
             }
           }
-          if (total >= count) break;
         }
-        if (total >= count) break;
       }
-      if (total >= count) break;
 
-      s.transpose(); successCount++; total++;
-      if (total >= count) break;
+      s.transpose(); successCount++; i++;
       printGrid();
-      s.reflection(true); successCount++; total++;
-      if (total >= count) break;
+      
+      s.reflection(true); successCount++; i++;
       printGrid();
-      s.rotation(); successCount++; total++;
-      if (total >= count) break;
+
+      s.rotation(); successCount++; i++;
       printGrid();
-      s.reflection(false); successCount++; total++;
-      if (total >= count) break;
+      
+      s.reflection(false); successCount++; i++;
       printGrid();
 
       for (int j = 1; j <= 4; j++) {
-        s.digPermut(j); successCount++; total++;
-        if (total >= count) break;
+        s.digPermut(j); successCount++; i++;
         printGrid();
       }
     }
@@ -185,11 +179,10 @@ int main(int argc, char* argv[]) {
 
   long long totalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - trueStart).count();
 
-  total = successCount + failureCount;
-  average = totalDuration / total;
+  double average = double(totalDuration) / double(total);
 
   double successRate = (total > 0) ? static_cast<double>(successCount) / double(total) : 0.0;
   std::cout << std::endl;
-  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration);
+  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average);
   
 }
