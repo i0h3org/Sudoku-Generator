@@ -14,10 +14,10 @@ in generation speed purely. This is not a solver.
 
 AI assisted in the construction of the code, so inefficiencies may be present from either direct logic or deferred. It suggested conversion of data types from std::set to std::bitset, and I would prefer convergence of that insight from experienced developers, as I was able to spot problems in the tool's suggestion during the project. The generator defaults to approximately 90% accuracy without assurity loops, but those loops generally complete in 1 try with occasional 2. The options list allows you to test these settings on your own, both with standard output or just pure generation.
 
-This generator allows building from a box pulled from another grid, it also allows extracting rows/columns from another grid. It inherently supports Samurai Sudoku and Multi Sudoku where corners connect, and is structed for ease of extensibility to other puzzle variants, such that using the pointer logic should allow you to assign parititions of the grid to represent masks or regions.
+This generator allows building from a box pulled from another grid, it also allows extracting a row and column from another grid. It inherently supports Samurai Sudoku and Multi Sudoku where corners connect, and is structured for ease of extensibility to other puzzle variants, such that using the pointer logic should allow you to assign parititions of the grid to represent masks or regions.
 
 I'm not familiar with implementations of known Sudoku variants, so I'm looking for others to extend this in that manner as well.
 
 Contributors should try to extend this in C++, but if you find out how to rebuild it in another language, feel free to publish that version independently: C#, Java, Jqeury, etc.
 
-If someone can attach a puzzle builder to this that would be good, I'd like to see how it performs with puzzle generation included. There's a field generated from the constructors that provides a flattened view of the grid, so you can use that to plug into a puzzle builder or solver.
+If someone can attach a puzzle builder to this that would be good, I'd like to see how it performs with puzzle generation included. There's a field generated from the constructor that provides a flattened view of the grid, so you can use that to plug into a puzzle builder or solver.
