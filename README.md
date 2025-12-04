@@ -19,9 +19,11 @@ Acer Nitro 5
 Options list for testing:
 
 --count n
---mode default or transform/xform/tf/t
+--mode default/transform/xform/tf/t
 --verbose
 --assured
+
+Example: --count 10000 --mode transform --verbose --assured
 
 The --count option allows generation up to a certain count. 
 The --verbose option enables stream output, someone could convert this to file stream.
