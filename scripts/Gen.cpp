@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
 
   double average = double(totalDuration) / double(total);
 
-  double successRate = (total > 0) ? static_cast<double>(successCount) / double(total) : 0.0;
+  double successRate = (total > 0) ? double(successCount) / double(total) : 0.0;
   std::cout << std::endl;
   std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average);
   
