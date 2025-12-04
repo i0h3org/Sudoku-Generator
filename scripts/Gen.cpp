@@ -19,6 +19,7 @@ static std::string as_percent(double value, int decimals = 1) {
 }
 
 static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av){
+  double _td = double (td) / 1000;
   std::ostringstream oss;
   oss << "Total Puzzles: " << t;
   oss << " | ";
@@ -28,7 +29,7 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   oss << " | ";
   oss << "Success Rate: " << as_percent(sr, 2);
   oss << " | ";
-  oss << "Total Duration: " << ((td > 1000) ? td / 1000 : td) << ((td > 1000) ? " seconds" : " milliseconds");
+  oss << "Total Duration: " << std::fixed << std::setprecision(2) << ((td > 1000) ? _td : td) << ((td > 1000) ? " seconds" : " milliseconds");
   oss << " | ";
   oss << "Average: " << std::fixed << std::setprecision(2) << av << " milliseconds" << std::endl;
   return oss.str();
