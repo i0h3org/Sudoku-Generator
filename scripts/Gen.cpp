@@ -30,7 +30,7 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   double _td = double (td) / 1000;
   std::ostringstream oss;
 
-  oss << "Mode: " << ((isTransform(m)) ? "Transform" : "Default");
+  oss << "Mode: " << ((isTransform(m)) ? "Transform" : "Default") << " | " << (!fc ? "Assured" : "Default");
   oss << '\n' << std::endl;
   oss << "Total Puzzles: " << t;
   oss << " | ";
