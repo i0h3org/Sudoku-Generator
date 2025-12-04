@@ -25,6 +25,8 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   oss << "Success Rate: " << as_percent(sr, 2);
   oss << " | ";
   oss << "Total Duration: " << ((td > 1000) ? td / 1000 : td) << ((td > 1000) ? " seconds" : " milliseconds");
+  oss << " | ";
+  oss << "Average: " << av << " milliseconds" << std::endl;
   return oss.str();
 }
 
@@ -184,6 +186,7 @@ int main(int argc, char* argv[]) {
   long long totalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(end - trueStart).count();
 
   total = successCount + failureCount;
+  average = totalDuration / total;
 
   double successRate = (total > 0) ? static_cast<double>(successCount) / double(total) : 0.0;
   std::cout << std::endl;
