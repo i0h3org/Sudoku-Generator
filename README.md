@@ -1,23 +1,28 @@
 # Sudoku-Generator
-Possibly the fastest Sudoku Generator available as it hits 1000 grids generated in 2.5 to 3 seconds with assurity and 2 to 2.5 without assurity on outdated hardware (2017 laptop) in a Windows environment with system interrupts, task scheduling, and no dedicated threading. The benchmark was performed with O2 optimizations, where fastest time generated is 54µs.
+Possibly the fastest Sudoku Generator available as it hits 1000 grids generated in 2.5 to 3 seconds with assurity and 2 to 2.5 without assurity on outdated hardware (2017 laptop) in a Windows environment with system interrupts, task scheduling, and no dedicated threading. It would need proper benchmark tests to see if it generates in sub-millisecond times on average with modern hardware. It is highly extensible, allowing both Samurai and Multi Sudoku grids. The Samurai grids are supported by box seeded grid generation, meaning that it can generate a puzzle from any box position. The grid generator handles standard 9x9 grids.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Not a seasoned C++ developer, so this needs those who know how to optimize this implementation of the algorithm, and perform the appropriate benchmark tests for the generator. There are currently 2 generation methods that post similar times for the current architecture: Intel Core i5 Windows laptop with 4 cores. Inexperience led to no appropriate data type translations for optimal speed, so the speed is coming purely from the algorithm itself. 
+The peak completion times in both spectrums are 54µs and 60ms. The variance is due to the architecture and task scheduling, so it needs to be tested on a modern PC in a Linux environment with O3 optimizations. As the benchmark tests are not optimal, one should be able to see the potential given its peak generation speed: averages are bogged down by the occasional 60ms spikes due to task scheduling and retries. If a retry is needed, the time is typically under 10ms, so 30-60ms times are due to the environment. I can't be certain because I do not possess the right architecture for benchmarking this.
 
-On my Windows PC with background processes, grid generation averages ~2 ms per puzzle
-(1000 grids in ~2 seconds). 60ms spikes occur due to OS scheduling and retries.
+It possesses the full suite of transforms, allowing 100,000 puzzles generated in the same time with all transforms applied. The objective is for this to become the fastest known grid generator, that can be used as the engine for solvers and puzzle generators. It inherently supports mask overlays to handle variants like Hyper Sudoku, Killer Sudoku, Diagonal/X Sudoku, Irregular Sudoku, all of which are not implemented currently. Samurai and Multi Sudoku is supported. The mask overlays can be accomplished in a manner similar to the Phistemofel mask produced from the Phistemofel function.
 
-A clean benchmarking environment (Linux, pinned cores, optimized builds) is needed
-to run tests and share their average times. I believe this generator can beat tdoku
-in generation speed purely. This is not a solver.
+I believe it can generate a few several 100,000 in a second with transforms on modern hardware if optimized appropriately. 
 
-AI assisted in the construction of the code, so inefficiencies may be present from either direct logic or deferred. It suggested conversion of data types from std::set to std::bitset, and I would prefer convergence of that insight from experienced developers, as I was able to spot problems in the tool's suggestion during the project. The generator defaults to approximately 90% accuracy without assurity loops, but those loops generally complete in 1 try with occasional 2. The options list allows you to test these settings on your own, both with standard output or just pure generation.
+Current architecture:
 
-This generator allows building from a box pulled from another grid, it also allows extracting a row and column from another grid. It inherently supports Samurai Sudoku and Multi Sudoku where corners connect, and is structured for ease of extensibility to other puzzle variants, such that using the pointer logic should allow you to assign parititions of the grid to represent masks or regions.
+Acer Nitro 5
+- CPU: Intel Core i5‑7300HQ 2.5GHz
+- GPU: NVIDIA GeForce GTX 1050 4GB
+- RAM: 32 GB DDR4
 
-I'm not familiar with implementations of known Sudoku variants, so I'm looking for others to extend this in that manner as well.
+Options list for testing:
 
-Contributors should try to extend this in C++, but if you find out how to rebuild it in another language, feel free to publish that version independently: C#, Java, Jqeury, etc.
+--count n
+--mode default or transform/xform/tf/t
+--verbose
+--assured
 
-If someone can attach a puzzle builder to this that would be good, I'd like to see how it performs with puzzle generation included. There's a field generated from the constructor that provides a flattened view of the grid, so you can use that to plug into a puzzle builder or solver.
+The --count option allows generation up to a certain count. 
+The --verbose option enables stream output, someone could convert this to file stream.
+The --assured option enables assurity, meaning the generation is looped until successful. The 90% success rate means most attempts will succeed in 2 tries or less, gravitating to 1 attempt.
