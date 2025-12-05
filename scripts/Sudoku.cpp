@@ -1462,7 +1462,7 @@ void Sudoku::digPermut(uint8_t count, uint8_t initPart) {
 					parts[idx_to].push_back(0);
 					parts[idx_from].pop_back();
 				}
-			} else { parts[0].push_back(0); parts.pop_back(); } // Reached smallest partition state, so the last vector is removed and first increased
+			} else { parts[0].push_back(0); parts.pop_back(); } // Reached smallest partition state, so the last size 1 vector for increase the first vector
 		}
 		return true;
 	};
@@ -1483,6 +1483,8 @@ void Sudoku::digPermut(uint8_t count, uint8_t initPart) {
 		}
 	}
 
+	// Mapping array construction would follow here
+
 	std::array<uint8_t, 10> mapping{}; // 1-based for digits 1..9
 
 	for (auto part : partitions) {
@@ -1496,6 +1498,9 @@ void Sudoku::digPermut(uint8_t count, uint8_t initPart) {
 			}
 		}
 	}
+
+	// mapping is std::array<uint8_t, 10> built from partitions
+	// grid is a flattened view of 81 cells (uint8_t* grid)
 
 	for (size_t i = 0; i < grid.size(); ++i) {
 		uint8_t val = *grid[i];
