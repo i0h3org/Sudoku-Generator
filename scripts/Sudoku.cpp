@@ -1239,8 +1239,6 @@ void Sudoku::printGrid() const {
 	std::string line;
 	line.reserve(64); // enough for one row
 
-	std::cout << "\n\n";
-
 	for (size_t band = 0; band < 3; band++) {
 		for (size_t row = 0; row < 3; row++) {
 			line.clear();
@@ -1261,7 +1259,8 @@ void Sudoku::printGrid() const {
 		}
 		if (band < 2) std::cout << "------+-------+------\n";
 	}
-	std::cout << std::flush;
+
+	std::cout << '\n' << std::endl;
 }
 
 bool Sudoku::validateGrid() {
@@ -1292,6 +1291,30 @@ void Sudoku::clearGrid(){
 
 	ring.fill(nullptr);
 	assoc_map.fill(nullptr);
+}
+
+void Sudoku::populate(std::string g) {
+	for (size_t i = 0; i < grid.size(); ++i) {
+		char c = g[i];
+		if (c >= '1' && c <= '9') {
+			*grid[i] = static_cast<uint8_t>(c - '0'); // convert char digit to number
+		} else {
+			*grid[i] = 0; // treat '.' or '0' or any non-digit as blank
+		}
+	}
+}
+
+std::string Sudoku::toString() {
+	std::string s;
+	s.reserve(81);
+	for (size_t i = 0; i < grid.size(); ++i) {
+		if (*grid[i] == 0) {
+			s.push_back('.'); // tdoku uses '.' or '0' for blanks
+		} else {
+			s.push_back('0' + *grid[i]); // convert digit to char
+		}
+	}
+	return s;
 }
 
 void Sudoku::torShift(size_t r_shift, size_t c_shift) {
@@ -1356,31 +1379,12 @@ void Sudoku::stackColSwap(size_t stack, size_t idx1, size_t idx2) {
 	}
 }
 
-void Sudoku::transpose() {
-	auto swapLines = [&](std::array<uint8_t*, 9> line1, std::array<uint8_t*, 9> line2, size_t idx) {
-		for (size_t j = idx + 1; j < 9; j++) {
-			std::swap(*line1[j], *line2[j]);
-		}
-	};
-
-	for (size_t i = 0; i < 9; i++) {
-		auto row = getRow(i);
-		auto col = getCol(i);
-		swapLines(row, col, i);
-	}
-}
-
-void Sudoku::rotation(){
-	transpose();
-	reflection(true);
-}
-
 void Sudoku::reflection(bool type) {
 	auto swapLines = [&](std::array<uint8_t*, 9> line1, std::array<uint8_t*, 9> line2){
 		for (size_t j = 0; j < 9; j++) {
 			std::swap(*line1[j], *line2[j]);
 		}
-	};
+		};
 
 	for (size_t i = 0; i < (9 / 2); i++)  {
 		if (type){
@@ -1395,43 +1399,115 @@ void Sudoku::reflection(bool type) {
 	}
 }
 
-void Sudoku::digPermut(size_t num) {
-	if (num == 0) return;
-
-	// Lambda to perform one digit swap
-	auto swapDigits = [&](uint8_t d1, uint8_t d2) {
-		std::array<uint8_t*, 9> dig1;
-		std::array<uint8_t*, 9> dig2;
-		size_t idx1 = 0, idx2 = 0;
-
-		// Collect addresses of all cells with d1 or d2
-		for (auto& box : boxes) {
-			for (size_t k = 0; k < 9; ++k) {
-				if (box.cells[k] == d1) dig1[idx1++] = &box.cells[k];
-				else if (box.cells[k] == d2) dig2[idx2++] = &box.cells[k];
-			}
-		}
-
-		// Swap all 9 occurrences
-		for (size_t i = 0; i < 9; ++i) {
-			std::swap(*dig1[i], *dig2[i]);
+void Sudoku::transpose() {
+	auto swapLines = [&](std::array<uint8_t*, 9> line1, std::array<uint8_t*, 9> line2, size_t idx) {
+		for (size_t j = idx + 1; j < 9; j++) {
+			std::swap(*line1[j], *line2[j]);
 		}
 	};
 
-	std::vector<uint8_t> pool{1, 2, 3, 4, 5, 6, 7 ,8 ,9};
-
-	// Perform 4 disjoint swaps (leaves 1 digit fixed)
-	for (int s = 0; s < num; ++s) {
-		// Shuffle pool for randomness
-		std::shuffle(pool.begin(), pool.end(), rng);
-
-		// Pick first two digits
-		uint8_t d1 = pool.back();
-		pool.pop_back();
-		uint8_t d2 = pool.back();
-		pool.pop_back();
-
-		// Swap them
-		swapDigits(d1, d2);
+	for (size_t i = 0; i < 9; i++) {
+		auto row = getRow(i);
+		auto col = getCol(i);
+		swapLines(row, col, i);
 	}
 }
+
+void Sudoku::rotation() {
+	transpose();
+	reflection(true);
+}
+
+void Sudoku::_rotation() {
+	transpose();
+	reflection(false);
+}
+
+void Sudoku::_transpose(){
+	_rotation();
+	reflection(true);
+}
+
+void Sudoku::digPermut(uint8_t count, uint8_t initPart) {
+	if (count > 18 || initPart < 2 || initPart > 9) return;
+
+	// Start with one partition of size initPart
+	std::vector<std::vector<uint8_t>> partitions(1, std::vector<uint8_t>(initPart, 0));
+	std::uniform_int_distribution<size_t> coin_dist(0, 1);
+
+	auto partition = [&](std::vector<std::vector<uint8_t>>& parts) -> bool {
+		std::uniform_int_distribution<size_t> idx_dist(0, (parts.size() - 1));
+
+		// Find index of largest partition
+		size_t idx_from = 0, idx_to = idx_dist(rng), max_size = 0;
+
+		for (size_t i = 0; i < parts.size(); ++i) {
+			if (parts[i].size() > max_size) {
+				max_size = parts[i].size();
+				idx_from = i;
+			}
+		}
+
+		if (initPart > 2){
+			if (max_size > 1) {
+				bool coin = (parts.size() > 1) ? bool(coin_dist(rng)) : true;
+				if (coin) {
+					// Partition: Create new fixed slot
+					parts.push_back(std::vector<uint8_t>(1, 0));
+					parts[idx_from].pop_back();
+				} else {
+					// Assumation: Inject into a different partition
+					while (idx_to == idx_from) { idx_to = idx_dist(rng); }
+
+					parts[idx_to].push_back(0);
+					parts[idx_from].pop_back();
+				}
+			} else { parts[0].push_back(0); parts.pop_back(); } // Reached smallest partition state, so the last vector is removed and first increased
+		}
+		return true;
+	};
+
+	// Run partitioning up to count
+	for (uint8_t i = 0; i < count; ++i) {
+		if (!partition(partitions)) break;
+	}
+
+	// Assign digits randomly
+	std::vector<uint8_t> digits = {1,2,3,4,5,6,7,8,9};
+	std::shuffle(digits.begin(), digits.end(), rng);
+
+	size_t idx = 0;
+	for (auto& part : partitions) {
+		for (auto& slot : part) {
+			slot = digits[idx++];
+		}
+	}
+
+	std::array<uint8_t, 10> mapping{}; // 1-based for digits 1..9
+
+	for (auto part : partitions) {
+		if (part.size() == 1) {
+			continue; // Fixed point: mark with 0 so grid keeps digit unchanged
+		} else {
+			// Shuffle partition to randomize cycle order
+			std::shuffle(part.begin(), part.end(), rng);
+			for (size_t i = 0; i < part.size(); ++i) {
+				mapping[part[i]] = part[(i + 1) % part.size()];
+			}
+		}
+	}
+
+	for (size_t i = 0; i < grid.size(); ++i) {
+		uint8_t val = *grid[i];
+		if (val >= 1 && val <= 9) {
+			// Only remap if mapping[val] is non-zero
+			if (mapping[val] != 0) {
+				*grid[i] = mapping[val];
+			}
+			// else leave unchanged (fixed point)
+		}
+		// If val == 0, treat as blank and skip
+	}
+}
+
+void Toroidal_Sudoku::torShift(size_t r_shift, size_t c_shift) { return; }
