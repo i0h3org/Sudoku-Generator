@@ -1,7 +1,4 @@
 #include "Sudoku.h"
-#include "Jigsaw.h"
-#include "Toroidal.h"
-#include "Mahou.h"
 
 #ifndef Sudoku_H
   #error X0
