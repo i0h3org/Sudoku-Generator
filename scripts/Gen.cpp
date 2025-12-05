@@ -1,15 +1,20 @@
 #include "Sudoku.h"
+#include "Jigsaw.h"
+#include "Toroidal.h"
+#include "Mahou.h"
 
 #ifndef Sudoku_H
   #error X0
 #endif
+
+#define exit_on_count if (total >= count) break;
+#define increment successCount++; i++; total++;
 
 #include <thread>
 #include <chrono>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <string>
 #include <unordered_set>
 
 static std::string as_percent(double value, int decimals = 1) {
@@ -51,6 +56,8 @@ int main(int argc, char* argv[]) {
   //Sudoku s, _s;
 
   //do { s.root_generate(true); } while (!s.validateGrid());
+
+  //s.digPermut(3, 5);
   //s.printGrid();
   //do { _s.line_generate(s.getRow(3), s.getCol(6)); } while (!_s.validateGrid());
   //_s.printGrid();
@@ -93,7 +100,7 @@ int main(int argc, char* argv[]) {
 
   std::chrono::steady_clock::time_point trueStart = clock::now(), end;
   for (size_t i = 0; i < count; i++) {
-    long long gridDuration;
+    long long gridDuration; bool validGrid = false;
     unsigned int tries = 0;
     size_t pos = size_t(i % 9), _pos = 8 - pos;
 
@@ -107,10 +114,7 @@ int main(int argc, char* argv[]) {
 
     gridDuration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    if (s.validateGrid()) { successCount++; } else { failureCount++; }
-    total = successCount + failureCount;
-
-    
+    validGrid = s.validateGrid();
 
     if (verbose) { 
       if (assured) {
@@ -126,58 +130,66 @@ int main(int argc, char* argv[]) {
 
     printGrid();
 
-    if (!s.validateGrid()) continue;
-
-    if ((count - i) < 89) continue;
+    if (validGrid) { successCount++; total = successCount + failureCount; } else { failureCount++; total = successCount + failureCount; continue; }
     
     if (transform) {
       for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++){
           if ( (!j && !k) ) continue;
-          s.torShift(j, k);
-          printGrid();
-          successCount++; i++;
+          s.torShift(j, k); increment exit_on_count
+          printGrid(); 
         }
       }
-
-      if (total >= count) break;
 
       for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
-          for (int l = 0; l < 3; l++) {
+          for (int l = (k + 1); l < 3; l++) {
             if (!(k == l)) {
-              s.bandSwap(k, l); successCount++; i++;
+              s.bandSwap(k, l); increment exit_on_count
               printGrid();
 
-              s.stackSwap(k, l);successCount++; i++;
+              s.stackSwap(k, l); increment exit_on_count
               printGrid();
 
-              s.bandRowSwap(j, k, l); successCount++; i++;
+              s.bandRowSwap(j, k, l); increment exit_on_count
               printGrid();
 
-              s.stackColSwap(j, k, l); successCount++; i++;
+              s.stackColSwap(j, k, l); increment exit_on_count
               printGrid();
             }
           }
+          exit_on_count
         }
+        exit_on_count
       }
+      exit_on_count
 
-      s.transpose(); successCount++; i++;
+      s.transpose(); increment exit_on_count
+      printGrid();
+
+      s._transpose(); increment exit_on_count
       printGrid();
       
-      s.reflection(true); successCount++; i++;
+      s.reflection(true); increment exit_on_count
       printGrid();
 
-      s.rotation(); successCount++; i++;
+      s.rotation(); increment exit_on_count
+      printGrid();
+
+      s._rotation(); increment exit_on_count
       printGrid();
       
-      s.reflection(false); successCount++; i++;
+      s.reflection(false); increment exit_on_count
       printGrid();
 
-      for (int j = 1; j <= 4; j++) {
-        s.digPermut(j); successCount++; i++;
-        printGrid();
+      for(uint8_t j = 0; j <= 18; j++) {
+        for (uint8_t k = 2; k <= 9; k++) {
+          s.digPermut(j, k); increment exit_on_count
+          printGrid();
+        }
+        exit_on_count
       }
+      exit_on_count
     }
   }
   end = clock::now();
@@ -189,5 +201,5 @@ int main(int argc, char* argv[]) {
   double successRate = (total > 0) ? double(successCount) / double(total) : 0.0;
   std::cout << std::endl;
   std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average, mode);
-  
+
 }
