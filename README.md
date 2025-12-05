@@ -7,8 +7,6 @@ The peak completion times in both spectrums are 54µs and 60ms. The variance is 
 
 It possesses the full suite of transforms, allowing 100,000 puzzles generated in the same time with all transforms applied. The objective is for this to become the fastest known grid generator, that can be used as the engine for solvers and puzzle generators. It inherently supports mask overlays to handle variants like Hyper Sudoku, Killer Sudoku, Diagonal/X Sudoku, Irregular Sudoku, all of which are not implemented currently. Samurai and Multi Sudoku is supported. The mask overlays can be accomplished in a manner similar to the Phistemofel mask produced from the Phistemofel function.
 
-I believe it can generate a few hundred thousand (2-4) in a second with transforms on modern hardware if optimized appropriately. 
-
 Current architecture:
 
 Acer Nitro 5
@@ -30,3 +28,5 @@ The --count option allows generation up to a certain count.
 The --verbose option enables stream output, someone could convert this to file stream.
 The --assured option enables assurity, meaning the generation is looped until successful. The 90% success rate means most attempts will succeed in 2 tries or less, gravitating to 1 attempt.
 The --bench option determines whether to generate a new grid after each set of transforms, or to keep a stable grid and loop the transform set over that grid.
+
+I believe this generator can generate a few hundred thousand (2-4) in a second with transforms on modern hardware if optimized appropriately. This expected throughput is pipeline. Most recent micro-benchmark timeframe is 1000000 in 2.7 seconds.
