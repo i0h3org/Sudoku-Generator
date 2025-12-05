@@ -78,6 +78,15 @@ public:
     return *this;  
   }
 
+  bool operator==(const Sudoku& source) {
+
+    for (size_t i = 0; i < grid.size(); i++) {
+      if ( !(*grid[i] == *source.grid[i]) ) return false;
+    }
+
+    return true;
+  }
+
   Box& getBox(size_t pos);
   Box& getBox(size_t _band, size_t _stack);
 
