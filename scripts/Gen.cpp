@@ -5,7 +5,9 @@
 #endif
 
 #define exit_on_count if (total >= count) break;
-#define increment successCount++; i++; total++;
+#define passInc successCount++; i++; total++;
+#define failInc failureCount++; i++; total++;
+#define equiv(a, b) a == b
 
 #include <thread>
 #include <chrono>
@@ -20,6 +22,22 @@ static std::string as_percent(double value, int decimals = 1) {
   return oss.str();
 }
 
+static bool isMicro(const std::string& b) {
+  static const std::unordered_set<std::string> aliases = {
+    "micro", "mic", "m"
+  };
+
+  return aliases.find(b) != aliases.end();
+}
+
+static bool isPipeline(const std::string& b) {
+  static const std::unordered_set<std::string> aliases = {
+    "pipeline", "pipe", "pl", "p"
+  };
+
+  return aliases.find(b) != aliases.end();
+}
+
 static bool isTransform(const std::string& m) {
   static const std::unordered_set<std::string> aliases = {
     "transform", "xform", "tf", "t"
@@ -28,11 +46,12 @@ static bool isTransform(const std::string& m) {
   return aliases.find(m) != aliases.end();
 }
 
-static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av, std::string m = "default") {
+static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long long td, double av, std::string m = "default", bool type = false) {
+  bool transform = isTransform(m);
   double _td = double (td) / 1000;
   std::ostringstream oss;
 
-  oss << "Mode: " << ((isTransform(m)) ? "Transform" : "Default") << " | " << (!fc ? "Assured" : "Default");
+  oss << "Mode: " << (transform ? "Transform" : "Default") << " | " << (type ? "Assured" : "Default");
   oss << '\n' << std::endl;
   oss << "Total Puzzles: " << t;
   oss << " | ";
@@ -44,13 +63,13 @@ static std::string diagnostics(size_t sc, size_t fc, size_t t, double sr, long l
   oss << " | ";
   oss << "Total Duration: " << std::fixed << std::setprecision(2) << ((td > 1000) ? _td : td) << ((td > 1000) ? " seconds" : " milliseconds");
   oss << " | ";
-  oss << "Average: " << std::fixed << std::setprecision(2) << av << " milliseconds" << std::endl;
+  oss << "Average: " << std::fixed << std::setprecision(5) << (transform ? av * 1000 : av) << (transform ? " microseconds" : " milliseconds") << std::endl;
 
   return oss.str();
 }
 
 int main(int argc, char* argv[]) {
-  //Sudoku s, _s;
+  Sudoku s, _s;
 
   //do { s.root_generate(true); } while (!s.validateGrid());
 
@@ -71,24 +90,26 @@ int main(int argc, char* argv[]) {
 
   
   size_t count = 999;
-  bool verbose = false;
-  bool assured = false;
-  bool transform = false;
+
+  bool verbose = false, assured = false, transform = false, micro = false, pipe = false;
+
   std::string mode = "default";
-  
-  Sudoku s;
+  std::string bench = "pl";
   
   if (argc > 1) {
     for (int i = 1; i < argc; ++i) {
       std::string arg = argv[i];
-      if (arg == "--count" && i+1 < argc) count = std::stoul(argv[++i]);
-      else if (arg == "--mode" && i + 1 < argc) mode = argv[++i];
+      if (arg == "--count" && ((i + 1) < argc)) count = std::stoul(argv[++i]);
+      else if (arg == "--mode" && ((i + 1) < argc)) mode = argv[++i];
+      else if (arg == "--bench" && ((i + 1) < argc)) bench = argv[++i];
       else if (arg == "--verbose") verbose = true;
       else if (arg == "--assured") assured = true;
     }
   }
 
   transform = isTransform(mode);
+  micro = isMicro(bench);
+  pipe = isPipeline(bench);
 
   using clock = std::chrono::steady_clock;
   size_t successCount = 0;
@@ -104,22 +125,28 @@ int main(int argc, char* argv[]) {
     auto start = clock::now();
 
     if (assured) {
-      do { s.root_generate(true, s.getBox(pos), _pos); /*s.line_generate();*/ tries++; } while ( !s.validateGrid() );
-    } else { s.root_generate(true, s.getBox(pos), _pos); /*s.line_generate();*/ }
+      if (!transform || pipe || !i) {
+        do { s.root_generate(true, s.getBox(pos), _pos); /*s.line_generate();*/ tries++; } while ( !s.validateGrid() );
+      }
+    } else { if (!transform || pipe || i == 0) s.root_generate(true, s.getBox(pos), _pos); /*s.line_generate();*/ }
 
     end = clock::now();
 
     gridDuration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
-    validGrid = s.validateGrid();
-
     if (verbose) { 
       if (assured) {
-        std::cout << '\n' << "Grid completion took: " << gridDuration << " microseconds in " << tries << " tries" << std::endl;
+        if (micro && i > 0) {} else { 
+          std::cout << '\n' << "Grid completion took: " << gridDuration << " microseconds in " << tries << " tries" << std::endl;
+        }
       } else {
-        std::cout << '\n' << "Grid completion took: " << gridDuration << " microseconds" << std::endl;
+        if (micro && i > 0) {} else { 
+          std::cout << '\n' << "Grid completion took: " << gridDuration << " microseconds" << std::endl;
+        }
       }
     }
+
+    validGrid = s.validateGrid();
 
     auto printGrid = [&](){
       if (verbose) s.printGrid();
@@ -129,29 +156,30 @@ int main(int argc, char* argv[]) {
 
     if (validGrid) { successCount++; total = successCount + failureCount; } else { failureCount++; total = successCount + failureCount; continue; }
     
+    if (!i) { _s = s; }
+
     if (transform) {
-      for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 3; k++){
-          if ( (!j && !k) ) continue;
-          s.torShift(j, k); increment exit_on_count
-          printGrid(); 
-        }
-      }
 
       for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
           for (int l = (k + 1); l < 3; l++) {
+            if ( (!k && !l) ) {} else {
+              s.torShift(k, l);
+              if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
+              printGrid(); 
+            }
+
             if (!(k == l)) {
-              s.bandSwap(k, l); increment exit_on_count
+              s.bandSwap(k, l); if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
               printGrid();
 
-              s.stackSwap(k, l); increment exit_on_count
+              s.stackSwap(k, l); if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
               printGrid();
 
-              s.bandRowSwap(j, k, l); increment exit_on_count
+              s.bandRowSwap(j, k, l); if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
               printGrid();
 
-              s.stackColSwap(j, k, l); increment exit_on_count
+              s.stackColSwap(j, k, l); if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
               printGrid();
             }
           }
@@ -161,27 +189,42 @@ int main(int argc, char* argv[]) {
       }
       exit_on_count
 
-      s.transpose(); increment exit_on_count
+      s.transpose(); 
+      if (equiv(_s, s)) { failInc exit_on_count} else { passInc exit_on_count }
+
       printGrid();
 
-      s._transpose(); increment exit_on_count
+      s._transpose(); 
+      if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
+      
       printGrid();
       
-      s.reflection(true); increment exit_on_count
-      printGrid();
-
-      s.rotation(); increment exit_on_count
-      printGrid();
-
-      s._rotation(); increment exit_on_count
-      printGrid();
+      s.reflection(true); 
+      if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
       
-      s.reflection(false); increment exit_on_count
+      printGrid();
+
+      for (size_t j = 0; j < 3; j++) {
+        s.rotation(); 
+        if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
+        
+        printGrid();
+      }
+
+      for (size_t j = 0; j < 3; j++) {
+        s._rotation(); 
+        if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
+        printGrid();
+      }
+      
+      s.reflection(false); 
+      if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
       printGrid();
 
       for(uint8_t j = 0; j <= 18; j++) {
         for (uint8_t k = 2; k <= 9; k++) {
-          s.digPermut(j, k); increment exit_on_count
+          s.digPermut(j, k); 
+          if (equiv(_s, s)) { failInc exit_on_count } else { passInc exit_on_count }
           printGrid();
         }
         exit_on_count
@@ -197,6 +240,5 @@ int main(int argc, char* argv[]) {
 
   double successRate = (total > 0) ? double(successCount) / double(total) : 0.0;
   std::cout << std::endl;
-  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average, mode);
-
+  std::cerr << diagnostics(successCount, failureCount, count, successRate, totalDuration, average, mode, assured);
 }
