@@ -20,11 +20,13 @@ Options list for testing:
 
 --count n
 --mode default/transform/xform/tf/t
+--bench micro/mic/m/pipeline/pipe/pl/p
 --verbose
 --assured
 
-Example: --count 10000 --mode transform --verbose --assured
+Example: --count 100000 --mode transform --bench pipeline --verbose --assured
 
 The --count option allows generation up to a certain count. 
 The --verbose option enables stream output, someone could convert this to file stream.
 The --assured option enables assurity, meaning the generation is looped until successful. The 90% success rate means most attempts will succeed in 2 tries or less, gravitating to 1 attempt.
+The --bench option determines whether to generate a new grid after each set of transforms, or to keep a stable grid and loop the transform set over that grid.
