@@ -75,4 +75,4 @@ This table shows average warm-cache timings (ns) from two runs single transforms
 | Stack Column Swap         | 150      | 375             | ~65 |
 | Digit Permutation         | 150      | 375             | ~65 |
 
-The partition-based digit transformation method was not used for this benchmark, but it was used in the 100,000,000 transform benchmark.
+The partition-based digit transformation method was not used for this benchmark, but it was used in the 100,000,000 transform benchmark along with the standard method, where the maximum partition set of 30 was applied by running a loop for all options of the partitioning subroutine, along with all 9! permutations for standard digit relabeling.
