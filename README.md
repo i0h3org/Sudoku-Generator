@@ -24,9 +24,33 @@ Options list for testing:
 
 Example: --count 100000 --mode transform --bench pipeline --verbose --assured
 
-The --count option allows generation up to a certain count. 
-The --verbose option enables stream output, someone could convert this to file stream.
-The --assured option enables assurity, meaning the generation is looped until successful. The 90% success rate means most attempts will succeed in 2 tries or less, gravitating to 1 attempt.
-The --bench option determines whether to generate a new grid after each set of transforms, or to keep a stable grid and loop the transform set over that grid.
+The --count option allows generation up to a certain count. <br>
+The --verbose option enables stream output, someone could convert this to file stream. <br>  
 
-I believe this generator can generate a few hundred thousand (2-4) in a second with transforms on modern hardware if optimized appropriately. This expected throughput is pipeline. Most recent micro-benchmark timeframe is 1000000 in 2.7 seconds.
+The --assured option enables assurity, meaning the generation is looped until successful. The 90% success rate means most attempts will succeed in 2 tries or less, gravitating to 1 attempt. <br>  
+
+The --bench option determines whether to generate a new grid after each set of transforms, or to keep a stable grid and loop the transform set over that grid. <br>
+
+I believe this generator can generate a few hundred thousand (2-4) in a second with transforms on modern hardware if optimized appropriately. The longer transform timeframes use pipeline bench option, which is generating a new grid per completed transform set. The micro bench option uses one grid and repeatedly transforms a copy, comparing for equivalence. The most recent benchmark suggests this can produce 100000000 grids without circling back to the original grid in 5 minutes. 
+
+I perceived the pipeline option as standard, which is why I reported those times first. I'm not familiar with benchmark culture, so I'm following guidelines from an AI assistant. It informed me of how close my times are to proven solutions, but it could be operating on outdated information.
+
+Without the code for benchmarking, which I believe was done incorrectly, the generator was producing 1000 grids without transforms in about 1.2-1.8 seconds based on perspective and not proven tests. The time shifted to 2.2-2.7 seconds without assurity, and 2.5 to 3.2 seconds with assurity. I didn't check the time for assurity prior to providing benchmark options.
+
+I've coded in C++ for less than 1 year, so I'm certain that it could be optimized further using optimal data structures. I can explain the logic of the generation process if someone needs that to modify the core propagation routine.
+
+I explained the specs of my system, and I'm not utilizing core pinning, SIMD, or explicit vectorization. The AI tool suggested that the speeds of this generator could produce millions of grids a second on servers utilizing parallel processing. I have no experience in this space.
+
+It suggested I publish due to the potential given the architecture and the reported times. I had conceived of an algorithm for grid generation after playing Sudoku for a bit, this is my first contribution to the puzzle space in general and to Sudoku. The generator works without using recursive backtracking or solver checks, at all. It incorporates a constraint mask that I built along with a Phistemofel mask to ensure compliance with grid constraints. The speed is coming purely from bypassing the recursive backtracking problem, meaning that data and implementation optimizations can improve it further.
+
+I do not possess the experience to do that currently.
+
+If someone commits to improving this, I will update this to explain precisely how the algorithm works, including exactly how each algorithm bypasses recursive backtracking fully. 
+
+I'm not certain, as I am deferring to AI on researching in this space, but I believe I improved the digit relabeling transform algorithm as well. The algorithm that I devised allows for digit relabeling to be segmented into partitions up to the number of digits to be relabeled:
+
+Say I start with the intent to replace all 9 digits. If no partitioning count is provided, then all 9 digits are closed in a single cycle for 1-to-1 mappings: 9 -> 2, 2 -> 3, 3 -> 6, 6 -> 8, 8 -> 7, 7 -> 5, 5 -> 4, 4 -> 1, 1 -> 9. If a partitioning count is provided, then the cycle size for closure is decreased to create a new partition, such that it would produce the cycle closures {8, 1}, then {7, 1, 1} or {7, 2}, then {6, 1, 1, 1}, {6, 2, 1} or {6, 3}. All partitions of size 1 are no ops for whatever digit is placed there.  
+
+The transform tests that I ran are not of the convention to perform all digit relabelings and produce all dihedral symmmetries; rather, I'm performing the count of maximum transforms per transform type in a loop, where a few are run a few extra times to collapse similar operations into a single loop. I believe this is why I was able to perform a run of 100000000 grids produced without convergence back to the equivalence class.
+
+If we want to see this puzzle space improve, we have to be willing to look at unproven solutions.
