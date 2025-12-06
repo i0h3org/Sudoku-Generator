@@ -31,9 +31,9 @@ The --assured option enables assurity, meaning the generation is looped until su
 
 The --bench option determines whether to generate a new grid after each set of transforms, or to keep a stable grid and loop the transform set over that grid. <br>
 
-The benchmark, when projected, suggests that modern architecture's of 4.5-5.7 GHz could produce 20-40m transforms of puzzles in a second. The pipeline option generates 100,000,000 in 7 seconds, which is generating a new grid per completed transform set. The micro bench option uses one grid and repeatedly transforms a copy, comparing for equivalence.
+The benchmark, when projected, suggests that modern architecture's of 4.5-5.7 GHz could produce 20-40m transforms of puzzles in a second. The set option for --bench generates 100,000,000 in 7 seconds, which is generating a new grid per completed transform set. The base option for --bench option uses one grid and repeatedly transforms a copy, comparing for equivalence.
 
-I perceived the pipeline option as standard, which is why I reported those times first. I'm not familiar with benchmark culture, so I'm following guidelines from an AI assistant. It informed me of how close my times are to proven solutions, but it could be operating on outdated information.
+I'm not familiar with benchmark culture, so I'm following guidelines from an AI assistant. It informed me of how close my times are to proven solutions, but it could be operating on outdated information.
 
 Without the code for benchmarking, which I believe was done incorrectly, the generator was producing 1000 grids without transforms in about 1.2-1.8 seconds based on perspective and not proven tests. The time shifted to 2.2-2.7 seconds without assurity, and 2.5 to 3.2 seconds with assurity, when benchmark testing was applied.
 
@@ -69,10 +69,10 @@ This table shows average warm-cache timings (ns) from two runs single transforms
 | Vertical Reflection       | 200      | 500             | ~85 |
 | Horizontal Reflection     | 250      | 625             | ~105 |
 | Toroidal Shift            | 150      | 375             | ~65 |
-| Band Swap                 | ~50      | ~125            | ~20 |
-| Stack Swap                | ~50      | ~125            | ~20 |
-| Band Row Swap             | ~100     | ~250            | ~40 |
+| Band Swap                 | 50       | 125             | ~20 |
+| Stack Swap                | 50       | 125             | ~20 |
+| Band Row Swap             | 100      | 250             | ~40 |
 | Stack Column Swap         | 150      | 375             | ~65 |
 | Digit Permutation         | 150      | 375             | ~65 |
 
-The partition-based digit transformation method was not used for this benchmark, but it was used in the 100,000,000 grid generation benchmark.
+The partition-based digit transformation method was not used for this benchmark, but it was used in the 100,000,000 transform benchmark.
